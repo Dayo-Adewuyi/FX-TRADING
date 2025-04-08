@@ -123,7 +123,6 @@ flowchart TD
     A[User] -->|Initiates wallet funding| B(Wallet Service)
     B -->|Validates request| C{Valid?}
     C -->|No| D[Return error]
-    C -->|Yes| E[Process payment with external provider]
     E -->|Payment successful| F[Update wallet balance]
     F -->|Create transaction record| G[Transaction recorded]
     G -->|Send notification| H[Email notification]
