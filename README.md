@@ -116,21 +116,7 @@ sequenceDiagram
     Trading Service-->>-Client: Return transaction details
 ```
 
-#### Wallet Funding Flow
 
-```mermaid
-flowchart TD
-    A[User] -->|Initiates wallet funding| B(Wallet Service)
-    B -->|Validates request| C{Valid?}
-    C -->|No| D[Return error]
-    E -->|Payment successful| F[Update wallet balance]
-    F -->|Create transaction record| G[Transaction recorded]
-    G -->|Send notification| H[Email notification]
-    E -->|Payment failed| I[Log failure]
-    I --> D
-```
-
----
 
 ## Technical Stack
 
