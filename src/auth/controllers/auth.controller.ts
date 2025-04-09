@@ -1,4 +1,3 @@
-// src/auth/controllers/auth.controller.ts
 import {
     Body,
     Controller,
@@ -15,7 +14,6 @@ import {
     ValidationPipe,
   } from '@nestjs/common';
   import { Response } from 'express';
-  import { AuthGuard } from '@nestjs/passport';
   import {
     ApiBearerAuth,
     ApiOperation,
@@ -66,7 +64,7 @@ import {
       status: HttpStatus.BAD_REQUEST,
       description: 'Invalid input data',
     })
-    @RateLimit({ points: 5, duration: 3600 }) // 5 registrations per hour
+    @RateLimit({ points: 5, duration: 3600 }) 
     async register(@Body(ValidationPipe) registerDto: RegisterDto) {
       return this.authService.register(registerDto);
     }
@@ -83,25 +81,23 @@ import {
       status: HttpStatus.UNAUTHORIZED,
       description: 'Invalid credentials',
     })
-    @RateLimit({ points: 10, duration: 300 }) // 10 login attempts per 5 minutes
+    @RateLimit({ points: 10, duration: 300 }) 
     async login(
       @Body(ValidationPipe) loginDto: LoginDto,
       @Res({ passthrough: true }) response: Response,
     ) {
       const result = await this.authService.login(loginDto);
       
-      // Set HTTP-only refresh token cookie for added security
       if (result.refreshToken) {
         response.cookie('refresh_token', result.refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          maxAge: 7 * 24 * 60 * 60 * 1000,
           path: '/auth/refresh-token',
         });
       }
       
-      // Don't return the refresh token in the response body
       delete result.refreshToken;
       
       return result;
@@ -124,7 +120,6 @@ import {
       @Req() request,
       @Res({ passthrough: true }) response: Response,
     ) {
-      // Try to get refresh token from cookie first, then from request body
       const refreshToken = 
         request.cookies?.refresh_token || refreshTokenDto.refreshToken;
       
@@ -137,18 +132,16 @@ import {
       
       const result = await this.authService.refreshToken(refreshToken);
       
-      // Update refresh token cookie
       if (result.refreshToken) {
         response.cookie('refresh_token', result.refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          maxAge: 7 * 24 * 60 * 60 * 1000, 
           path: '/auth/refresh-token',
         });
       }
       
-      // Don't return the refresh token in the response body
       delete result.refreshToken;
       
       return result;
@@ -168,15 +161,12 @@ import {
       @Req() request,
       @Res({ passthrough: true }) response: Response,
     ) {
-      // Get token from Authorization header
       const token = request.headers.authorization?.split(' ')[1];
       
       if (token) {
-        // Blacklist the token
         await this.tokenService.blacklistToken(token, user.id);
       }
       
-      // Clear refresh token cookie
       response.clearCookie('refresh_token', {
         path: '/auth/refresh-token',
       });
@@ -208,7 +198,7 @@ import {
       status: HttpStatus.OK,
       description: 'Verification email sent',
     })
-    @RateLimit({ points: 3, duration: 3600 }) // 3 resend requests per hour
+    @RateLimit({ points: 3, duration: 3600 })
     @ApiBearerAuth()
     async resendVerification(@CurrentUser() user: User) {
       return this.emailVerificationService.sendVerificationEmail(user);
@@ -222,7 +212,7 @@ import {
       status: HttpStatus.OK,
       description: 'Password reset email sent',
     })
-    @RateLimit({ points: 3, duration: 3600 }) // 3 forgot password requests per hour
+    @RateLimit({ points: 3, duration: 3600 }) 
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
       return this.authService.forgotPassword(forgotPasswordDto.email);
     }
@@ -274,7 +264,7 @@ import {
       status: HttpStatus.OK,
       description: 'OTP sent successfully',
     })
-    @RateLimit({ points: 5, duration: 300 }) // 5 OTP requests per 5 minutes
+    @RateLimit({ points: 5, duration: 300 }) 
     @ApiBearerAuth()
     async requestOtp(
       @CurrentUser() user: User,
@@ -295,7 +285,7 @@ import {
       status: HttpStatus.OK,
       description: 'OTP verified successfully',
     })
-    @RateLimit({ points: 5, duration: 300 }) // 5 OTP verification attempts per 5 minutes
+    @RateLimit({ points: 5, duration: 300 }) 
     @ApiBearerAuth()
     async verifyOtp(
       @CurrentUser() user: User,

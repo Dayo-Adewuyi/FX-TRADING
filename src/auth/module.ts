@@ -1,10 +1,9 @@
-// src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 import { User } from '../users/entities/user.entity';
 import { AuthController } from './controllers/auth.controller';
@@ -17,10 +16,11 @@ import { TokenService } from './services/token.service';
 import { TokenBlacklist } from './entities/token-blacklist.entity';
 import { OtpService } from './services/otp.service';
 import { OtpEntity } from './entities/otp.entity';
+import { SecurityLog } from './entities/security-log.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, TokenBlacklist, OtpEntity]),
+    TypeOrmModule.forFeature([User, TokenBlacklist, OtpEntity, SecurityLog]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -36,15 +36,18 @@ import { OtpEntity } from './entities/otp.entity';
     RedisModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        config: {
-          host: configService.get('REDIS_HOST', 'localhost'),
-          port: configService.get('REDIS_PORT', 6379),
-          password: configService.get('REDIS_PASSWORD'),
-          keyPrefix: 'auth:',
-          db: 0,
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        return {
+          type: 'single',
+          options: {
+            host: configService.get('REDIS_HOST', 'localhost'),
+            port: configService.get<number>('REDIS_PORT', 6379),
+            password: configService.get('REDIS_PASSWORD'),
+            db: 0,
+            keyPrefix: 'auth:',
+          },
+        };
+      },
     }),
     UsersModule,
   ],
